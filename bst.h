@@ -6,6 +6,29 @@
 
 
 /**
+	Class that implements an unvalid comparator exception
+*/
+class not_valid_comparator : public std::runtime_error {
+public:
+	/**
+		Secondary constructor, takes a message
+		@param msg Message of error
+	*/
+	not_valid_comparator(const char *msg) :std::runtime_error(msg) {}
+};
+
+class value_not_found : public std::runtime_error {
+public:
+	/**
+		Secondary constructor, takes a message
+		@param msg Message of error
+	*/
+	value_not_found(const char *msg) :std::runtime_error(msg) {}
+};
+
+
+
+/**
 	Class that implement a binary search tree
 */
 
@@ -14,7 +37,7 @@ class bst
 {
 	/**
 		Struct that rappresent a node of a binary tree.
-		A node contains a value, a left child, and a right child
+		A node contains a value, a parent, a left child, and a right child
 	*/
 	struct node
 	{
@@ -38,9 +61,7 @@ class bst
 			@param l Left child
 			@param r Right child
 		*/
-		// TODO Check compare
 		node(const T &pt, node *l, node *r) : value(pt), left(l), right(r) {}
-
 
 		/**
 			Default constructor
@@ -84,14 +105,24 @@ public:
 	/**
 		Default constructor
 	*/
-	bst() : node(0), _size(0) {}
+	bst() : _root(0), _size(0) {}
 
 	/**
 		Destructor
 
 		TODO
 	*/
-	~bst();
+	~bst(){
+		clear();
+	}
+
+	/**
+		Removes the tree
+		TODO
+	*/
+	void clear(){
+
+	}
 
 	/**
 		Copy constructor
@@ -111,15 +142,12 @@ public:
 	*/
 	bst& operator=(const bst &other){
 		if(this != &other){
-			bst tmp_bst(other) // Calling the copy constructor
-			std::swap(this->_root, tmp_bst._root);
-			std::swap(this->_size, tmp_bst._size);
+			bst tmp_bst(other); // Calling the copy constructor
+			std::swap(this._root, tmp_bst._root);
+			std::swap(this._size, tmp_bst._size);
 		}
-
 		return *this;
 	}
-
-	
 
 	/**
 		Inserts a value in the tree
@@ -127,17 +155,40 @@ public:
 		@param val Value of type T to be inserted
 	*/	
 	void insert(const T &val){
+		compT comp;
 		if(!exist(val)){
-			if (_root = 0)
+			if (_root == 0)
 			{
-				_root = new node(val)
-			}else{
-				// TODO Insertion
+				_root = new node(val);
+			} else {
+				node *curr = _root;
+				while(curr != 0){
+					switch(comp(curr->value, val)){
+						case 0:
+							break;
+						case 1:
+							if(curr->right != 0){
+								curr = curr->right;
+							}else{
+								curr->right = new node(val); //Check if new is required
+								_size++;
+							}
+							break;
+						case -1:
+							if(curr->left != 0){
+								curr = curr->left;
+							}else{
+								curr->left = new node(val); //Check if new is required
+								_size++;
+							}
+							break;
+						default:
+							throw not_valid_comparator("Unable to compare the values");
+					}	
+				}
 			}
 		}
 	}
-
-	
 
 	/**
 		Checks if the value exist or not in the BST
@@ -147,10 +198,43 @@ public:
 	*/
 	bool exist(const T &val) const {
 		node *n = find(val);
-
-		return (n != 0)
+		return (n != 0);
 	}
 
+	/**
+		Search for the node that has the given value
+
+		@param val Value to search
+		@return If exist, the pointer to the node with the specified value, 0 otherwise
+	*/
+	node *find(const T &val) const {
+		node *curr = _root;
+		compT comp;
+		while(curr != 0){
+			switch(comp(curr->value, val)){
+				case 0:
+					return curr;
+					break;
+				case 1:
+					if(curr->right != 0){
+						curr = curr->right;
+					}else{
+						throw value_not_found("Unable to find the value");
+					}
+					break;
+				case -1:
+					if(curr->left != 0){
+						curr = curr->left;
+					}else{
+						throw value_not_found("Unable to find the value");
+					}
+					break;
+				default:
+					throw not_valid_comparator("Unable to compare the values");
+			}	
+		}
+		return 0;
+	}
 
 	/**
 		Contstant forward iterator 
@@ -175,7 +259,7 @@ public:
 			@param other Iterator to be copied
 		*/
 		const_iterator(const const_iterator &other){
-			n = other.n
+			n = other.n;
 		}
 
 		/**
@@ -189,7 +273,6 @@ public:
 			return *this;
 		}
 
-
 		/**
 			Destructor
 		*/
@@ -197,6 +280,7 @@ public:
 
 		/**
 			Dereference by reference
+			
 			@return Constant reference to the value
 		*/
 		const T& operator*() const {
@@ -205,27 +289,56 @@ public:
 
 		/**
 			Dereference by pointer
+			
+			@return Constant pointer to the value
 		*/
 		const T* operator->() const {
 			return &(n->value);
 		}
 
 		/**
-			Post-increment
-			@ret	urn Iterator to the previous value in the tree
+			Post-increment operator
+			
+			@return The iterator to the previous value in the tree
 		*/
 		const_iterator operator++(int){
+			if(n == 0){
+				return 0;
+			}
 			const_iterator tmp(*this);
-
 			n = get_next_node(n);
-			return *this
+			return tmp;
 		}
 
-
-		node* get_next_node(const &node n){
+		/**
+			Pre-increment operator
 			
+			@return The iteretor to the next node of the tree
+		*/
+		const_iterator& operator++(){
+			n = get_next_node(n);
+			return *this;
 		}
 
+		/**
+			Equality comparison
+			
+			@other Iterator to compare
+			@return True if the two iterators point to the same node of the tree, false otherwise
+		*/
+		bool operator==(const const_iterator &other){
+			return n == other.n;
+		}
+
+		/**
+			Not equal comparison
+			
+			@other Iterator to compare
+			@return True if the two iterators point to diffrent node in the tree, false otherwise
+		*/
+		bool operator!=(const const_iterator &other){
+			return n != other.n;
+		}
 
 
 	private:
@@ -234,14 +347,66 @@ public:
 		// Friend class for allowing it to use the initialization constructor
 		friend class bst;
 
-		//TODO Second constructor
+		/**
+			Secondary constructor
+			@param pn Pointer to a node in the tree
+		*/
+		const_iterator(const node *pn){
+			n = pn;
+		}
+
+		/**
+			Finds the next node in the pre-order tree visit
+			
+			@return The pointer to the node
+		*/
+		node* get_next_node(const node &n){
+			if(n.parent == n.left == n.right == 0){
+				return 0;
+			}
+			if(n->left != 0){
+				return n.left;
+			}else{
+				return first_right(n.parent);
+			}
+		}
+
+		/**
+			Finds the first node with a not null right child
+
+			@return The pointer to the node
+		*/		
+		node* first_right(const node &n){
+			if(n == 0){
+				return 0;
+			}
+
+			if(n.right != 0){
+				return n.right;
+			}else{
+				return first_right(n.parent);
+			}
+		}
 
 	}; // End of class const_iterator
 
+	/**
+		Iterator of the begin of the tree
 
-	
+		@return The iterator of the begin of the tree
+	*/
+	const_iterator begin() const {
+		return const_iterator(_root);
+	}
+
+	/**
+		Iterator of the end of the tree
+
+		@return Iterator to the end of the tree
+	*/
+	const_iterator end() const {
+		return const_iterator(0);
+	}
 
 };
-
-
 #endif
