@@ -17,6 +17,9 @@ public:
 	not_valid_comparator(const char *msg) :std::runtime_error(msg) {}
 };
 
+/**
+	Class that implements a not found value exception
+*/
 class value_not_found : public std::runtime_error {
 public:
 	/**
@@ -26,7 +29,17 @@ public:
 	value_not_found(const char *msg) :std::runtime_error(msg) {}
 };
 
-
+/**
+	Class that implements a duplicated value exception
+*/
+class duplicate_value : public std::runtime_error {
+public:
+	/**
+		Secondary constructor, takes a message
+		@param msg Message of error
+	*/
+	duplicate_value(const char *msg) :std::runtime_error(msg) {}
+};
 
 /**
 	Class that implement a binary search tree
@@ -71,7 +84,11 @@ class bst
 		/**
 			Destructor
 		*/
-		~node(){}
+		~node(){
+			parent = 0;
+			delete right;
+			delete left;
+		}
 
 
 		/**
@@ -113,15 +130,11 @@ public:
 		TODO
 	*/
 	~bst(){
-		clear();
+		delete _root;
 	}
 
-	/**
-		Removes the tree
-		TODO
-	*/
 	void clear(){
-
+		delete _root;
 	}
 
 	/**
@@ -165,21 +178,28 @@ public:
 				while(curr != 0){
 					switch(comp(curr->value, val)){
 						case 0:
+							throw duplicate_value("Value already exist");
 							break;
 						case 1:
 							if(curr->right != 0){
 								curr = curr->right;
 							}else{
-								curr->right = new node(val); //Check if new is required
+								node *tn = new node(val);
+								tn->parent = curr;
+								curr->right = tn;
 								_size++;
+								return;
 							}
 							break;
 						case -1:
 							if(curr->left != 0){
 								curr = curr->left;
 							}else{
-								curr->left = new node(val); //Check if new is required
+								node *tn = new node(val);
+								tn->parent = curr;
+								curr->left = tn;
 								_size++;
+								return;
 							}
 							break;
 						default:
@@ -219,14 +239,14 @@ public:
 					if(curr->right != 0){
 						curr = curr->right;
 					}else{
-						throw value_not_found("Unable to find the value");
+						return 0;
 					}
 					break;
 				case -1:
 					if(curr->left != 0){
 						curr = curr->left;
 					}else{
-						throw value_not_found("Unable to find the value");
+						return 0;
 					}
 					break;
 				default:
@@ -235,6 +255,7 @@ public:
 		}
 		return 0;
 	}
+
 
 	/**
 		Contstant forward iterator 
@@ -306,7 +327,7 @@ public:
 				return 0;
 			}
 			const_iterator tmp(*this);
-			n = get_next_node(n);
+			n = get_next_node();
 			return tmp;
 		}
 
@@ -316,7 +337,7 @@ public:
 			@return The iteretor to the next node of the tree
 		*/
 		const_iterator& operator++(){
-			n = get_next_node(n);
+			n = get_next_node();
 			return *this;
 		}
 
@@ -349,6 +370,7 @@ public:
 
 		/**
 			Secondary constructor
+
 			@param pn Pointer to a node in the tree
 		*/
 		const_iterator(const node *pn){
@@ -360,34 +382,27 @@ public:
 			
 			@return The pointer to the node
 		*/
-		node* get_next_node(const node &n){
-			if(n.parent == n.left == n.right == 0){
+		node* get_next_node() {
+			if(n->parent == 0 && n->left == 0 && n->right == 0){
 				return 0;
 			}
+
 			if(n->left != 0){
-				return n.left;
-			}else{
-				return first_right(n.parent);
+				return n->left;
 			}
+			if(n->right != 0){
+				return n->right;
+			}
+
+			while(n->parent != 0){
+				if(n->parent->right != 0 && n->parent->right != n){
+					n = n->parent;
+					return n->right;
+				}
+				n = n->parent;
+			}
+			
 		}
-
-		/**
-			Finds the first node with a not null right child
-
-			@return The pointer to the node
-		*/		
-		node* first_right(const node &n){
-			if(n == 0){
-				return 0;
-			}
-
-			if(n.right != 0){
-				return n.right;
-			}else{
-				return first_right(n.parent);
-			}
-		}
-
 	}; // End of class const_iterator
 
 	/**
@@ -409,4 +424,22 @@ public:
 	}
 
 };
+
+/**
+	Operatore di stream di output per la stampa di un avector
+	@param os stream di output
+	@param av avector da scrivere
+	@return lo stream di output
+*/
+template <typename T, typename C>
+std::ostream & operator<<(std::ostream &os, const bst<T,C> &tree) {
+	
+	typename bst<T,C>::const_iterator i,ie;
+	
+	for(i=tree.begin(), ie=tree.end(); i != ie; i++){ 
+		 os << *i << " ";
+	}
+	
+	return os;
+}
 #endif
