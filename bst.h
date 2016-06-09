@@ -166,48 +166,111 @@ public:
 		Inserts a value in the tree
 
 		@param val Value of type T to be inserted
+		@throws TODO
 	*/	
 	void insert(const T &val){
 		compT comp;
-		if(!exist(val)){
-			if (_root == 0)
-			{
-				_root = new node(val);
-			} else {
-				node *curr = _root;
-				while(curr != 0){
-					switch(comp(curr->value, val)){
-						case 0:
-							throw duplicate_value("Value already exist");
-							break;
-						case 1:
-							if(curr->right != 0){
-								curr = curr->right;
-							}else{
-								node *tn = new node(val);
-								tn->parent = curr;
-								curr->right = tn;
-								_size++;
-								return;
-							}
-							break;
-						case -1:
-							if(curr->left != 0){
-								curr = curr->left;
-							}else{
-								node *tn = new node(val);
-								tn->parent = curr;
-								curr->left = tn;
-								_size++;
-								return;
-							}
-							break;
-						default:
-							throw not_valid_comparator("Unable to compare the values");
-					}	
-				}
+		if (_root == 0)
+		{
+			_root = new node(val);
+			_size++;
+		} else {
+			node *curr = _root;
+			while(curr != 0){
+				switch(comp(curr->value, val)){
+					case 0:
+						throw duplicate_value("Value already exist");
+						break;
+					case 1:
+						if(curr->right != 0){
+							curr = curr->right;
+						}else{
+							node *tn = new node(val);
+							tn->parent = curr;
+							curr->right = tn;
+							_size++;
+							return;
+						}
+						break;
+					case -1:
+						if(curr->left != 0){
+							curr = curr->left;
+						}else{
+							node *tn = new node(val);
+							tn->parent = curr;
+							curr->left = tn;
+							_size++;
+							return;
+						}
+						break;
+					default:
+						throw not_valid_comparator("Unable to compare the values");
+				}	
 			}
 		}
+	}
+
+	void remove(const T &val){
+		node *removed = remove_helper(find(val));
+		removed->parent = 0;
+		removed->left = 0;
+		removed->right = 0;
+		delete removed;
+	}
+
+	node* remove_helper(const node &n){
+		node *to_remove = n;
+		if(to_remove == 0){
+			throw value_not_found("Unable to find the value to remove");
+		}
+		node *parent = to_remove->parent;
+		if(to_remove->left == 0 && to_remove->right == 0){
+			return to_remove;
+		}
+		if(to_remove->left != 0 && to_remove->right != 0){
+			node *n = to_remove->right;
+			node *min;
+			if(n->left == 0){
+				min = n;
+			}else{
+				node *curr = n->left;
+				while(curr->left != 0){
+					curr = curr->left;
+				}
+				if(curr->right != 0){
+					curr = remove(curr->right->val);
+				}
+				// TO DO Verificare che curr non abbia figli destri
+				min = curr;
+				curr->parent = 0;
+				curr->left = 0;
+				curr->right = 0;
+				delete curr;
+			}
+			to_remove->value = min->value;
+			return min;
+		}else{
+			node *substitute = (to_remove->left != 0) ? to_remove->left : to_remove->right;
+			substitute->parent = parent;
+			if(parent->left == to_remove){
+				parent->left == substitute;
+			}else{
+				parent->right == substitute;
+			}
+			return to_remove;
+		}
+	}
+
+
+	node *find_min(const node &n)const{
+		if(n.left == 0){
+			return n;
+		}
+		node *curr = n.left;
+		while(curr->left != 0){
+			curr = curr->left;
+		}
+		return curr;
 	}
 
 	/**
@@ -256,6 +319,9 @@ public:
 		return 0;
 	}
 
+	int get_size(){
+		return _size;
+	}
 
 	/**
 		Contstant forward iterator 
@@ -401,7 +467,7 @@ public:
 				}
 				n = n->parent;
 			}
-			
+	
 		}
 	}; // End of class const_iterator
 
@@ -439,6 +505,7 @@ std::ostream & operator<<(std::ostream &os, const bst<T,C> &tree) {
 	for(i=tree.begin(), ie=tree.end(); i != ie; i++){ 
 		 os << *i << " ";
 	}
+	os << std::endl;
 	
 	return os;
 }
