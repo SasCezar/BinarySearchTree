@@ -212,9 +212,6 @@ public:
 
 	void remove(const T &val){
 		node *removed = remove_helper(*find(val));
-		if(removed == 0){
-			return;
-		}
 		if(removed->parent->left == removed){
 			removed->parent->left = 0;
 		}
@@ -250,15 +247,14 @@ public:
 					curr = curr->left;
 				}
 				min = curr->value;
-				curr->value = to_remove->value;
 				curr = remove_helper(*curr);
 				curr->parent = 0;
 				curr->left = 0;
 				curr->right = 0;
 				delete curr;
 			}
-			std::swap(to_remove->value,min);
-			return 0;
+			to_remove->value = min;
+			return to_remove;
 		}else{
 			node *substitute = (to_remove->left != 0) ? to_remove->left : to_remove->right;
 			substitute->parent = parent;
