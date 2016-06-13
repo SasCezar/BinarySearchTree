@@ -211,7 +211,17 @@ public:
 	}
 
 	void remove(const T &val){
-		node *removed = remove_helper(find(val));
+		node *removed = remove_helper(*find(val));
+		if(removed == 0){
+			return;
+		}
+		if(removed->parent->left == removed){
+			removed->parent->left = 0;
+		}
+		if(removed->parent->right == removed){
+			removed->parent->right = 0;
+		}
+		std::cout << "rem out" << removed->value << std::endl;		
 		removed->parent = 0;
 		removed->left = 0;
 		removed->right = 0;
@@ -219,7 +229,7 @@ public:
 	}
 
 	node* remove_helper(const node &n){
-		node *to_remove = n;
+		node *to_remove = find(n.value);
 		if(to_remove == 0){
 			throw value_not_found("Unable to find the value to remove");
 		}
@@ -227,28 +237,28 @@ public:
 		if(to_remove->left == 0 && to_remove->right == 0){
 			return to_remove;
 		}
+
+		
 		if(to_remove->left != 0 && to_remove->right != 0){
 			node *n = to_remove->right;
-			node *min;
+			T min;
 			if(n->left == 0){
-				min = n;
+				min = n->value;
 			}else{
 				node *curr = n->left;
 				while(curr->left != 0){
 					curr = curr->left;
 				}
-				if(curr->right != 0){
-					curr = remove(curr->right->val);
-				}
-				// TO DO Verificare che curr non abbia figli destri
-				min = curr;
+				min = curr->value;
+				curr->value = to_remove->value;
+				curr = remove_helper(*curr);
 				curr->parent = 0;
 				curr->left = 0;
 				curr->right = 0;
 				delete curr;
 			}
-			to_remove->value = min->value;
-			return min;
+			std::swap(to_remove->value,min);
+			return 0;
 		}else{
 			node *substitute = (to_remove->left != 0) ? to_remove->left : to_remove->right;
 			substitute->parent = parent;
