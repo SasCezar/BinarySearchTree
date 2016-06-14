@@ -212,59 +212,70 @@ public:
 
 	void remove(const T &val){
 		node *removed = remove_helper(*find(val));
-		if(removed->parent->left == removed){
-			removed->parent->left = 0;
-		}
-		if(removed->parent->right == removed){
-			removed->parent->right = 0;
-		}
-		std::cout << "rem out" << removed->value << std::endl;		
 		removed->parent = 0;
 		removed->left = 0;
 		removed->right = 0;
 		delete removed;
 	}
 
-	node* remove_helper(const node &n){
-		node *to_remove = find(n.value);
+	node* remove_helper(node &n){
+		std::cout << std::endl << "  -- " << n.value << std::endl;
+		node *to_remove = &n;
 		if(to_remove == 0){
 			throw value_not_found("Unable to find the value to remove");
 		}
 		node *parent = to_remove->parent;
 		if(to_remove->left == 0 && to_remove->right == 0){
+			std::cout << "L&&R uguali a 0 ";
+			if(to_remove->parent->left == to_remove){
+				to_remove->parent->left = 0;
+			}else{
+				to_remove->parent->right = 0;
+			}
 			return to_remove;
 		}
 
-		
-		if(to_remove->left != 0 && to_remove->right != 0){
-			node *n = to_remove->right;
-			T min;
-			if(n->left == 0){
-				min = n->value;
-			}else{
-				node *curr = n->left;
-				while(curr->left != 0){
-					curr = curr->left;
-				}
-				min = curr->value;
-				curr = remove_helper(*curr);
-				curr->parent = 0;
-				curr->left = 0;
-				curr->right = 0;
-				delete curr;
-			}
-			to_remove->value = min;
-			return to_remove;
-		}else{
+		if(to_remove->left == 0 || to_remove->right == 0){
+			std::cout << "L||R uguali a 0 ";
 			node *substitute = (to_remove->left != 0) ? to_remove->left : to_remove->right;
 			substitute->parent = parent;
 			if(parent->left == to_remove){
-				parent->left == substitute;
+				parent->left = substitute;
 			}else{
-				parent->right == substitute;
+				parent->right = substitute;
 			}
 			return to_remove;
 		}
+
+		if(to_remove->left != 0 && to_remove->right != 0){
+			std::cout << "L!=R uguali a 0 ";
+			node* succ = successor(to_remove->right);
+
+			std::cout << std::endl << "Succ" << succ-> value << std::endl;
+		
+
+			std::swap(to_remove->value, succ->value);
+
+			if(succ->left == 0 && succ->right == 0){
+				std::cout << "LR uguali a 0  -- delete leaf";
+				succ->parent->right = 0;
+				return succ;
+			}else{
+				std::cout << "LR uguali a 0  -- delete node";
+				succ->right->parent = succ->parent;
+				succ->parent->right = succ->right;
+				succ->right = 0;
+				return succ;
+			}
+		}
+		
+	}
+
+	node* successor(node *n){
+		while(n->left != 0){
+			n = n->left;
+		}
+		return n;
 	}
 
 

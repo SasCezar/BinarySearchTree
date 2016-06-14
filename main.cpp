@@ -34,7 +34,7 @@ void test_bst_1(){
 	std::cout << tree.find(50)->left->value << tree.find(50)->right->value;
 	std::cout << "Size:" << tree.get_size() << std::endl;
 	std::cout << tree;
-	tree.remove(30);
+	tree.remove(70);
 	std::cout << tree;
 	//int x = tree.find(7)->value;
 	//tree.clear();
