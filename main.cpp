@@ -21,30 +21,70 @@ void test_bst_1(){
 	try{
 		tree.insert(50);
 		tree.insert(30);
-		tree.insert(40);
 		tree.insert(60);
-		tree.insert(70);
-		tree.insert(20);
+		tree.insert(80);
 		tree.insert(90);
-		tree.insert(550);
+		tree.insert(65);
 	}catch(duplicate_value &e) {
 		std::cout<<e.what()<<std::endl;
 	}
 	
-	std::cout << tree.find(50)->left->value << tree.find(50)->right->value;
-	std::cout << "Size:" << tree.get_size() << std::endl;
+	int values_to_remove[3] = {50, 30, 80};
+
+	for (int i = 0; i < 3; ++i)
+	{
+		std::cout << "Size: " << tree.get_size() << std::endl;
+		std::cout << tree;
+		std::cout << "removing " << values_to_remove[i] << std::endl;  
+		tree.remove(values_to_remove[i]);
+	}
+	std::cout << "Size: " << tree.get_size() << std::endl;
 	std::cout << tree;
-	tree.remove(70);
-	std::cout << tree;
-	//int x = tree.find(7)->value;
-	//tree.clear();
-	//tree.find(7);
 	return;
+}
+
+void test_bst_2(){
+	bst<int, compare_int> tree;
+
+	try{
+		tree.insert(50);
+		tree.insert(30);
+		tree.insert(60);
+		tree.insert(80);
+		tree.insert(90);
+		tree.insert(65);
+	}catch(duplicate_value &e) {
+		std::cout<<e.what()<<std::endl;
+	}
+
+	bst<int, compare_int> copy_tree(tree);
+	tree.remove(50);
+	std::cout << "Original - Size: " << tree.get_size() << std::endl;
+	std::cout << tree;
+	
+	std::cout << "Copy - Size: " << copy_tree.get_size() << std::endl;
+	std::cout << copy_tree;
+	
+
+	bst<int, compare_int> third_tree;
+
+	third_tree = copy_tree;
+
+	third_tree.remove(50);		
+	std::cout << "3 - Size: " << third_tree.get_size() << std::endl;
+	std::cout << third_tree;
+	
+
+	std::cout << "Copy - Size: " << copy_tree.get_size() << std::endl;
+	std::cout << copy_tree;
+	
 }
 
 
 int main(){
 	test_bst_1();
+	std::cout << "-----Test 2-----"<< std::endl;
+	test_bst_2();
 
 	return 0;
 }

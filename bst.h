@@ -118,6 +118,59 @@ class bst
 	node *_root; 	///< Pointer to the first node of the tree
 	int _size; 		///< Number of nodes in the tree
 
+node* remove_helper(node &n){
+		node *to_remove = &n;
+		if(to_remove == 0){
+			throw value_not_found("Unable to find the value to remove");
+		}
+		node *parent = to_remove->parent;
+		if(to_remove->left == 0 && to_remove->right == 0){
+			if(to_remove->parent == 0){
+				return to_remove;
+			}
+			if(to_remove->parent->left == to_remove){
+				to_remove->parent->left = 0;
+			}else{
+				to_remove->parent->right = 0;
+			}
+			return to_remove;
+		}
+
+		if(to_remove->left == 0 || to_remove->right == 0){
+			node *substitute = (to_remove->left != 0) ? to_remove->left : to_remove->right;
+			substitute->parent = parent;
+			if(parent->left == to_remove){
+				parent->left = substitute;
+			}else{
+				parent->right = substitute;
+			}
+			return to_remove;
+		}
+
+		if(to_remove->left != 0 && to_remove->right != 0){
+			node* succ = successor(to_remove->right);
+			std::swap(to_remove->value, succ->value);
+
+			if(succ->left == 0 && succ->right == 0){
+				succ->parent->right = 0;
+				return succ;
+			}else{
+				succ->right->parent = succ->parent;
+				succ->parent->right = succ->right;
+				return succ;
+			}
+		}
+		
+	}
+
+	node* successor(node *n){
+		while(n->left != 0){
+			n = n->left;
+		}
+		return n;
+	}
+
+
 public:
 	/**
 		Default constructor
@@ -126,11 +179,9 @@ public:
 
 	/**
 		Destructor
-
-		TODO
 	*/
 	~bst(){
-		delete _root;
+		clear();
 	}
 
 	void clear(){
@@ -145,6 +196,19 @@ public:
 		TODO
 	*/
 	bst(const bst& other) : _root(0), _size(0) {
+		node * tmp = other._root;
+		const_iterator i, ie;
+		i = other.begin();
+		ie = other.end();
+		try{
+			while(tmp != 0 && i != ie){
+				insert(*i);
+				++i;
+			}
+		}catch(...){
+			clear();
+			throw;
+		}
 
 	}
 
@@ -152,12 +216,14 @@ public:
 		Assignment operator
 
 		@param other The BST to be copied
+		@return *this
 	*/
+	// TODO CHECK!!! SWAP
 	bst& operator=(const bst &other){
 		if(this != &other){
 			bst tmp_bst(other); // Calling the copy constructor
-			std::swap(this._root, tmp_bst._root);
-			std::swap(this._size, tmp_bst._size);
+			std::swap(this->_root, tmp_bst._root);
+			std::swap(this->_size, tmp_bst._size);
 		}
 		return *this;
 	}
@@ -166,7 +232,8 @@ public:
 		Inserts a value in the tree
 
 		@param val Value of type T to be inserted
-		@throws TODO
+		@throw duplicate_value
+		@throw not_valid_comparator
 	*/	
 	void insert(const T &val){
 		compT comp;
@@ -210,84 +277,22 @@ public:
 		}
 	}
 
+
 	void remove(const T &val){
-		node *removed = remove_helper(*find(val));
+		node *to_remove = find(val);
+		if(to_remove == 0){
+			throw value_not_found("Unable to remove the inserted value");
+		}
+		node *removed = remove_helper(*to_remove);
+		if(removed->parent == 0){
+			_root = 0;
+			_size = 0;
+		}
 		removed->parent = 0;
 		removed->left = 0;
 		removed->right = 0;
+		_size--;
 		delete removed;
-	}
-
-	node* remove_helper(node &n){
-		std::cout << std::endl << "  -- " << n.value << std::endl;
-		node *to_remove = &n;
-		if(to_remove == 0){
-			throw value_not_found("Unable to find the value to remove");
-		}
-		node *parent = to_remove->parent;
-		if(to_remove->left == 0 && to_remove->right == 0){
-			std::cout << "L&&R uguali a 0 ";
-			if(to_remove->parent->left == to_remove){
-				to_remove->parent->left = 0;
-			}else{
-				to_remove->parent->right = 0;
-			}
-			return to_remove;
-		}
-
-		if(to_remove->left == 0 || to_remove->right == 0){
-			std::cout << "L||R uguali a 0 ";
-			node *substitute = (to_remove->left != 0) ? to_remove->left : to_remove->right;
-			substitute->parent = parent;
-			if(parent->left == to_remove){
-				parent->left = substitute;
-			}else{
-				parent->right = substitute;
-			}
-			return to_remove;
-		}
-
-		if(to_remove->left != 0 && to_remove->right != 0){
-			std::cout << "L!=R uguali a 0 ";
-			node* succ = successor(to_remove->right);
-
-			std::cout << std::endl << "Succ" << succ-> value << std::endl;
-		
-
-			std::swap(to_remove->value, succ->value);
-
-			if(succ->left == 0 && succ->right == 0){
-				std::cout << "LR uguali a 0  -- delete leaf";
-				succ->parent->right = 0;
-				return succ;
-			}else{
-				std::cout << "LR uguali a 0  -- delete node";
-				succ->right->parent = succ->parent;
-				succ->parent->right = succ->right;
-				succ->right = 0;
-				return succ;
-			}
-		}
-		
-	}
-
-	node* successor(node *n){
-		while(n->left != 0){
-			n = n->left;
-		}
-		return n;
-	}
-
-
-	node *find_min(const node &n)const{
-		if(n.left == 0){
-			return n;
-		}
-		node *curr = n.left;
-		while(curr->left != 0){
-			curr = curr->left;
-		}
-		return curr;
 	}
 
 	/**
@@ -306,8 +311,12 @@ public:
 
 		@param val Value to search
 		@return If exist, the pointer to the node with the specified value, 0 otherwise
+		@throw not_valid_comparator
 	*/
 	node *find(const T &val) const {
+		if(_root == 0){
+			throw value_not_found("Unable to find the inserted value");
+		}
 		node *curr = _root;
 		compT comp;
 		while(curr != 0){
@@ -336,6 +345,12 @@ public:
 		return 0;
 	}
 
+
+	/**
+		Returns the size of the tree
+
+		@return The size of the tree
+	*/
 	int get_size(){
 		return _size;
 	}
@@ -505,7 +520,6 @@ public:
 	const_iterator end() const {
 		return const_iterator(0);
 	}
-
 };
 
 /**
@@ -518,7 +532,7 @@ template <typename T, typename C>
 std::ostream & operator<<(std::ostream &os, const bst<T,C> &tree) {
 	
 	typename bst<T,C>::const_iterator i,ie;
-	
+
 	for(i=tree.begin(), ie=tree.end(); i != ie; i++){ 
 		 os << *i << " ";
 	}
