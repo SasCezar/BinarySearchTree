@@ -64,7 +64,7 @@ class bst
 
 			@param pt Value of the node	
 		*/
-		node(const T &pt) : value(pt), left(0), right(0){}
+		node(const T &pt) : value(pt), left(0), right(0), parent(0){}
 
 
 		/**
@@ -74,12 +74,12 @@ class bst
 			@param l Left child
 			@param r Right child
 		*/
-		node(const T &pt, node *l, node *r) : value(pt), left(l), right(r) {}
+		node(const T &pt, node *l, node *r, node *p) : value(pt), left(l), right(r), parent(p) {}
 
 		/**
 			Default constructor
 		*/
-		node() : left(0), right(0) {}
+		node() : left(0), right(0), parent(0) {}
 
 		/**
 			Destructor
@@ -96,7 +96,7 @@ class bst
 
 			@param other Node to be copied
 		*/
-		node(const node &other) : value(other.value), left(other.left), right(other.right) {}
+		node(const node &other) : value(other.value), left(other.left), right(other.right), parent(other.parent) {}
 
 		/**
 			Assignment operator
@@ -107,7 +107,8 @@ class bst
 			if(this != &other) {
 				value = other.value;
 				left = other.left;
-				right = other.right;				
+				right = other.right;
+				parent = other.parent;
 			}
 			return *this;
 		}
@@ -236,6 +237,8 @@ public:
 	*/
 	void clear(){
 		delete _root;
+		_size = 0;
+		_root = 0; 
 	}
 
 	/**
@@ -364,7 +367,6 @@ public:
 	class const_iterator {
 	public:
 		typedef std::forward_iterator_tag iterator_category;
-		// typedef T value_type; Controllare se ridondante
 		typedef const T* pointer;
 		typedef const T& reference;
 
@@ -424,9 +426,6 @@ public:
 			@return The iterator to the previous value in the tree
 		*/
 		const_iterator operator++(int){
-			if(n == 0){
-				return 0;
-			}
 			const_iterator tmp(*this);
 			n = get_next_node();
 			return tmp;
@@ -439,9 +438,6 @@ public:
 		*/
 		const_iterator& operator++(){
 			n = get_next_node();
-			//if(n == 0){
-			//	return n;
-			//}
 			return *this;
 		}
 

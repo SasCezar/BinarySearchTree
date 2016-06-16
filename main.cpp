@@ -28,7 +28,7 @@ void test_bst_1(){
 		tree.insert(40);
 		tree.insert(20);
 		tree.insert(70);
-		//tree.insert(20);
+		tree.insert(20);
 	}catch(duplicate_value &e){
 		std::cout << e.what() << std::endl;
 	}
