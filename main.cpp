@@ -16,75 +16,62 @@ struct compare_int {
 
 
 void test_bst_1(){
-	bst<int, compare_int> tree;
+	std::cout << "--- TEST 1---" << std::endl;
+	std::cout << "- Inserimento - (con duplicato) -" << std::endl;
 	
+	bst<int, compare_int> tree;
+
 	try{
 		tree.insert(50);
-		tree.insert(30);
 		tree.insert(60);
-		tree.insert(80);
-		tree.insert(90);
-		tree.insert(65);
-	}catch(duplicate_value &e) {
-		std::cout<<e.what()<<std::endl;
+		tree.insert(30);
+		tree.insert(40);
+		tree.insert(20);
+		tree.insert(70);
+		//tree.insert(20);
+	}catch(duplicate_value &e){
+		std::cout << e.what() << std::endl;
 	}
-	
-	int values_to_remove[3] = {50, 30, 80};
 
-	for (int i = 0; i < 3; ++i)
-	{
-		std::cout << "Size: " << tree.get_size() << std::endl;
-		std::cout << tree;
-		std::cout << "removing " << values_to_remove[i] << std::endl;  
-		tree.remove(values_to_remove[i]);
-	}
+	std::cout << "- Stampa -" << std::endl;
 	std::cout << "Size: " << tree.get_size() << std::endl;
-	std::cout << tree;
-	return;
-}
+	std::cout << tree << std::endl;			
 
-void test_bst_2(){
-	bst<int, compare_int> tree;
-
-	try{
-		tree.insert(50);
-		tree.insert(30);
-		tree.insert(60);
-		tree.insert(80);
-		tree.insert(90);
-		tree.insert(65);
-	}catch(duplicate_value &e) {
-		std::cout<<e.what()<<std::endl;
-	}
-
+	std::cout << "- Copia -" << std::endl;
 	bst<int, compare_int> copy_tree(tree);
-	tree.remove(50);
-	std::cout << "Original - Size: " << tree.get_size() << std::endl;
-	std::cout << tree;
-	
-	std::cout << "Copy - Size: " << copy_tree.get_size() << std::endl;
-	std::cout << copy_tree;
-	
 
-	bst<int, compare_int> third_tree;
-
-	third_tree = copy_tree;
-
-	third_tree.remove(50);		
-	std::cout << "3 - Size: " << third_tree.get_size() << std::endl;
-	std::cout << third_tree;
 	
-
-	std::cout << "Copy - Size: " << copy_tree.get_size() << std::endl;
-	std::cout << copy_tree;
+	std::cout << "- Rimozione originale ( con valore inesistente) -" << std::endl;
+	try{
+		tree.remove(70); 
+		tree.remove(30); 
+		tree.remove(50);
+		//tree.remove(100);
+	}catch(value_not_found &e){
+		std::cout << e.what() << std::endl;
+	}
 	
+	std::cout << "- Stampa originale (post rimozione) -" << std::endl;
+	std::cout << "Size: " << tree.get_size() << std::endl;
+	std::cout << tree << std::endl;
+	
+	std::cout << "- Stampa copia -" << std::endl;
+	std::cout << "Size: " << copy_tree.get_size() << std::endl;
+	std::cout << copy_tree << std::endl;
+
+
+	std::cout << "- Subtree -" << std::endl;
+	bst<int, compare_int> sub_tree = subtree(copy_tree, 50);
+	std::cout << "Size: " << sub_tree.get_size() << std::endl;
+	std::cout << sub_tree << std::endl;
+	std::cout << "- Subtree remove -" << std::endl;
+	sub_tree.remove(50);
+	std::cout << "Size: " << sub_tree.get_size() << std::endl;
+	std::cout << sub_tree << std::endl;
+
 }
-
-
+	
 int main(){
 	test_bst_1();
-	std::cout << "-----Test 2-----"<< std::endl;
-	test_bst_2();
-
 	return 0;
 }

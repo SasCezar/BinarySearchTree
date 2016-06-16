@@ -98,7 +98,6 @@ class bst
 		*/
 		node(const node &other) : value(other.value), left(other.left), right(other.right) {}
 
-
 		/**
 			Assignment operator
 
@@ -118,7 +117,7 @@ class bst
 	node *_root; 	///< Pointer to the first node of the tree
 	int _size; 		///< Number of nodes in the tree
 
-node* remove_helper(node &n){
+	node* remove_helper(node &n){
 		node *to_remove = &n;
 		if(to_remove == 0){
 			throw value_not_found("Unable to find the value to remove");
@@ -163,12 +162,60 @@ node* remove_helper(node &n){
 		
 	}
 
-	node* successor(node *n){
+	node* successor(node *n) const{
 		while(n->left != 0){
 			n = n->left;
 		}
 		return n;
 	}
+
+	node* max(node *n) const{ 
+		while(n->right != 0){
+			n = n->right;
+		}
+		return n;
+	}
+
+
+	/**
+		Search for the node that has the given value
+
+		@param val Value to search
+		@return If exist, the pointer to the node with the specified value, 0 otherwise
+		@throw not_valid_comparator
+	*/
+	node *find(const T &val) const {
+		if(_root == 0){
+			throw value_not_found("Unable to find the inserted value");
+		}
+		node *curr = _root;
+		compT comp;
+		while(curr != 0){
+			switch(comp(curr->value, val)){
+				case 0:
+					return curr;
+					break;
+				case 1:
+					if(curr->right != 0){
+						curr = curr->right;
+					}else{
+						return 0;
+					}
+					break;
+				case -1:
+					if(curr->left != 0){
+						curr = curr->left;
+					}else{
+						return 0;
+					}
+					break;
+				default:
+					throw not_valid_comparator("Unable to compare the values");
+			}	
+		}
+		return 0;
+	}
+
 
 
 public:
@@ -184,6 +231,9 @@ public:
 		clear();
 	}
 
+	/**
+
+	*/
 	void clear(){
 		delete _root;
 	}
@@ -192,24 +242,17 @@ public:
 		Copy constructor
 
 		@param other The BST to be copied
-
-		TODO
 	*/
 	bst(const bst& other) : _root(0), _size(0) {
-		node * tmp = other._root;
 		const_iterator i, ie;
-		i = other.begin();
-		ie = other.end();
 		try{
-			while(tmp != 0 && i != ie){
+			for(i = other.begin(), ie = other.end(); i != ie; i++){
 				insert(*i);
-				++i;
 			}
 		}catch(...){
 			clear();
 			throw;
 		}
-
 	}
 
 	/**
@@ -218,7 +261,6 @@ public:
 		@param other The BST to be copied
 		@return *this
 	*/
-	// TODO CHECK!!! SWAP
 	bst& operator=(const bst &other){
 		if(this != &other){
 			bst tmp_bst(other); // Calling the copy constructor
@@ -237,11 +279,11 @@ public:
 	*/	
 	void insert(const T &val){
 		compT comp;
-		if (_root == 0)
+		if(_root == 0)
 		{
 			_root = new node(val);
 			_size++;
-		} else {
+		}else{
 			node *curr = _root;
 			while(curr != 0){
 				switch(comp(curr->value, val)){
@@ -307,46 +349,6 @@ public:
 	}
 
 	/**
-		Search for the node that has the given value
-
-		@param val Value to search
-		@return If exist, the pointer to the node with the specified value, 0 otherwise
-		@throw not_valid_comparator
-	*/
-	node *find(const T &val) const {
-		if(_root == 0){
-			throw value_not_found("Unable to find the inserted value");
-		}
-		node *curr = _root;
-		compT comp;
-		while(curr != 0){
-			switch(comp(curr->value, val)){
-				case 0:
-					return curr;
-					break;
-				case 1:
-					if(curr->right != 0){
-						curr = curr->right;
-					}else{
-						return 0;
-					}
-					break;
-				case -1:
-					if(curr->left != 0){
-						curr = curr->left;
-					}else{
-						return 0;
-					}
-					break;
-				default:
-					throw not_valid_comparator("Unable to compare the values");
-			}	
-		}
-		return 0;
-	}
-
-
-	/**
 		Returns the size of the tree
 
 		@return The size of the tree
@@ -354,6 +356,7 @@ public:
 	int get_size(){
 		return _size;
 	}
+
 
 	/**
 		Contstant forward iterator 
@@ -436,6 +439,9 @@ public:
 		*/
 		const_iterator& operator++(){
 			n = get_next_node();
+			//if(n == 0){
+			//	return n;
+			//}
 			return *this;
 		}
 
@@ -484,10 +490,10 @@ public:
 			if(n->parent == 0 && n->left == 0 && n->right == 0){
 				return 0;
 			}
-
 			if(n->left != 0){
 				return n->left;
 			}
+
 			if(n->right != 0){
 				return n->right;
 			}
@@ -499,7 +505,7 @@ public:
 				}
 				n = n->parent;
 			}
-	
+			return 0;
 		}
 	}; // End of class const_iterator
 
@@ -520,6 +526,29 @@ public:
 	const_iterator end() const {
 		return const_iterator(0);
 	}
+
+	/**
+		Iterator of the begin of a subtree, thath has val as root
+
+		@parm val Root of the subtree
+		@return The iterator of the begin of the subtree
+	*/
+	const_iterator begin_subtree(const T &val) const {
+		node *subtree_root = find(val);
+		return const_iterator(subtree_root);
+	}
+
+	/**
+		Iterator of the end of a subtree, that has val as root
+
+		@param val Root of the subtree
+		@return Iterator to the end of the subtree
+	*/
+	const_iterator end_subtree(const T &val) const {
+		node *subtree_root = find(val);
+		node *max_node = max(subtree_root);
+		return const_iterator(max_node);
+	}
 };
 
 /**
@@ -531,13 +560,30 @@ public:
 template <typename T, typename C>
 std::ostream & operator<<(std::ostream &os, const bst<T,C> &tree) {
 	
-	typename bst<T,C>::const_iterator i,ie;
+	typename bst<T, C>::const_iterator i,ie;
 
-	for(i=tree.begin(), ie=tree.end(); i != ie; i++){ 
+	for(i = tree.begin(), ie = tree.end(); i != ie; i++){ 
 		 os << *i << " ";
 	}
 	os << std::endl;
 	
 	return os;
 }
+
+template <typename T, typename C>
+bst<T, C> subtree(const bst<T, C> &tree, const T &val){
+	bst<T, C> subtree;
+	
+	typename bst<T, C>::const_iterator i, ie;
+	if(!tree.exist(val)){
+		throw value_not_found("Unable to find the value");
+	}
+	for(i = tree.begin_subtree(val), ie = tree.end_subtree(val); i != ie; ++i){
+		subtree.insert(*i);
+	}
+	subtree.insert(*i);
+
+	return subtree;
+} 
+
 #endif
