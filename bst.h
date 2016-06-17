@@ -43,6 +43,13 @@ public:
 
 /**
 	Class that implement a binary search tree
+
+	The class requires to specify the type of the values
+	The class requires a comparator for the specified values,
+	the comparator have to return an value of type int that equals to one of these:
+		- 0 : if the values are equal
+		- 1 : if value A is greater than value B
+		- -1: if value B is less than value B
 */
 
 template <typename T, typename compT>
@@ -118,6 +125,14 @@ class bst
 	node *_root; 	///< Pointer to the first node of the tree
 	int _size; 		///< Number of nodes in the tree
 
+
+	/*
+		Removes the node from the tree
+
+		@param n The node to remove
+		@return *node Pointer to the node to delete
+		@throw value_not_found
+	*/
 	node* remove_helper(node &n){
 		node *to_remove = &n;
 		if(to_remove == 0){
@@ -170,6 +185,11 @@ class bst
 		
 	}
 
+	/*
+		Finds the successor of a node
+
+		@param n The node of which find the successor
+	*/
 	node* successor(node *n) const{
 		while(n->left != 0){
 			n = n->left;
@@ -177,6 +197,11 @@ class bst
 		return n;
 	}
 
+	/*
+		Finds the max given a node
+
+		@param n The root of the subtree where to search the maximum value
+	*/
 	node* max(node *n) const{ 
 		while(n->right != 0){
 			n = n->right;
@@ -190,6 +215,7 @@ class bst
 
 		@param val Value to search
 		@return If exist, the pointer to the node with the specified value, 0 otherwise
+		@throw value_not_found
 		@throw not_valid_comparator
 	*/
 	node *find(const T &val) const {
@@ -240,7 +266,7 @@ public:
 	}
 
 	/**
-
+		Removes all the nodes of the tree
 	*/
 	void clear(){
 		delete _root;
@@ -330,6 +356,11 @@ public:
 	}
 
 
+	/*
+		Finds and removes the node that has val as his value
+
+		@param val The value to remove 
+	*/
 	void remove(const T &val){
 		node *to_remove = find(val);
 		if(to_remove == 0){
@@ -552,10 +583,10 @@ public:
 };
 
 /**
-	Operatore di stream di output per la stampa di un avector
-	@param os stream di output
-	@param av avector da scrivere
-	@return lo stream di output
+	Stream operator for a bst
+	@param os Output stream
+	@param av bst to write
+	@return The output stream
 */
 template <typename T, typename C>
 std::ostream & operator<<(std::ostream &os, const bst<T,C> &tree) {
@@ -570,6 +601,14 @@ std::ostream & operator<<(std::ostream &os, const bst<T,C> &tree) {
 	return os;
 }
 
+/**
+	Creates a sub-bst given a node
+
+	@param tree The tree to be copied
+	@param val The root of the new bst
+	@return The subtree
+	@throw value_not_found
+*/
 template <typename T, typename C>
 bst<T, C> subtree(const bst<T, C> &tree, const T &val){
 	bst<T, C> subtree;
