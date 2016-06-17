@@ -136,13 +136,20 @@ class bst
 			return to_remove;
 		}
 
-		if(to_remove->left == 0 || to_remove->right == 0){
+		if(to_remove->left == 0 ^ to_remove->right == 0){
 			node *substitute = (to_remove->left != 0) ? to_remove->left : to_remove->right;
-			substitute->parent = parent;
-			if(parent->left == to_remove){
-				parent->left = substitute;
+			if(parent == 0){
+				substitute->parent = 0;
+				_root = substitute;
+				to_remove->left = 0;
+				to_remove->right = 0;
 			}else{
-				parent->right = substitute;
+				substitute->parent = parent;
+				if(parent->left == to_remove){
+					parent->left = substitute;
+				}else{
+					parent->right = substitute;
+				}
 			}
 			return to_remove;
 		}
@@ -329,10 +336,7 @@ public:
 			throw value_not_found("Unable to remove the inserted value");
 		}
 		node *removed = remove_helper(*to_remove);
-		if(removed->parent == 0){
-			_root = 0;
-			_size = 0;
-		}
+	
 		removed->parent = 0;
 		removed->left = 0;
 		removed->right = 0;
