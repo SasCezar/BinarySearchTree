@@ -578,7 +578,7 @@ public:
 	const_iterator end_subtree(const T &val) const {
 		node *subtree_root = find(val);
 		node *max_node = max(subtree_root);
-		return const_iterator(max_node);
+		return ++const_iterator(max_node);
 	}
 };
 
@@ -620,8 +620,7 @@ bst<T, C> subtree(const bst<T, C> &tree, const T &val){
 	for(i = tree.begin_subtree(val), ie = tree.end_subtree(val); i != ie; ++i){
 		subtree.insert(*i);
 	}
-	subtree.insert(*i);
-
+	
 	return subtree;
 } 
 
